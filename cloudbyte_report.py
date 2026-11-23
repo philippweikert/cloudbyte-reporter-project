@@ -25,5 +25,26 @@ def main():
         time = log_elements[0][11:]
         print(f"{date} {time} {log_elements[1]} {log_elements[2]}")
 
+    print()
+
+    #Actions counted by each user
+    user_counts = {}
+    for log_line in log_lines:
+        username = log_line.split()[1]
+        user_counts[username] = user_counts.get(username, 0) + 1
+
+    #print(user_counts)
+
+    #Counting and sorting the users by actions
+    user_pairs = []
+    for username, count in user_counts.items():
+        user_pairs.append((count, username))
+
+    user_pairs.sort(reverse=True)
+
+    #Most active Users
+    for rank, (count, username) in enumerate(user_pairs, start=1):
+        print(f"{rank}. {username}: {count} events")
+
 if __name__ == "__main__":
     main()
