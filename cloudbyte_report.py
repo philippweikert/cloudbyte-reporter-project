@@ -22,18 +22,13 @@ def count_and_rank(log_lines, get_key):
         key = get_key(log_line)
         count_list[key] = count_list.get(key, 0) + 1
 
-    pair_list = []
-    for key, count in count_list.items():
-        pair_list.append((count, key))
+    pair_list = [(count, key) for key, count in count_list.items()]
     pair_list.sort(key=by_count_then_name)
     return pair_list
 
 def main():
-
-    log_lines = []
-    with open("cloudbyte_access.log" , "r") as log_file:
-        for line in log_file:
-            log_lines.append(line)
+    with open("cloudbyte_access.log", "r") as log_file:
+        log_lines = [line for line in log_file ]
 
     first_ts = log_lines[0].split()[0]
     last_ts = log_lines[-1].split()[0]
@@ -68,11 +63,31 @@ def main():
 
     print()
 
-    # Activity by type.
+    #Activity by type.
     action_pairs = count_and_rank(log_lines, get_action)
     print("Activity by type")
     for rank, (count, action) in enumerate(action_pairs, start=1):
-        print(f"  {rank}. {action}: {count} events")
+        print(f"{rank}. {action}: {count} events")
+
+    print()
+
+    #Most active logins
+    logins = [login for login in log_lines if get_action(login) == "login"]
+    login_pairs = count_and_rank(logins, get_user)
+    print("Most active logins:")
+    for rank, (count, username) in enumerate(login_pairs, start=1):
+        print(f"{rank}. {username}: {count} events")
+
+    print()
+
+    #Activity for one user
+    person = "alice"
+    persons_login = [persons for persons in log_lines if get_user(persons) == person]
+    persons_login_pairs = count_and_rank(persons_login, get_action)
+    print(f"Activity by {person}:")
+    for rank, (count, action) in enumerate(persons_login_pairs, start=1):
+        print(f"{rank}. {action}: {count} events")
+
 
 if __name__ == "__main__":
     main()
