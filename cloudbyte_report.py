@@ -1,7 +1,27 @@
 #!/usr/bin/env python3
 """CloudByte Ops Reporter: summarise CloudByte's activity from the command line."""
 
+import csv
+
 print("Loading the reporter...")
+
+def count_and_rank(log_lines, get_key):
+    count_list = {}
+    for log_line in log_lines:
+        key = get_key(log_line)
+        count_list[key] = count_list.get(key, 0) + 1
+    pairs = [(count, key) for key, count in count_list.items()]
+    pairs.sort(key=by_count_then_name)
+    return pairs
+
+def total_and_rank(pairs, group_of):
+    total_list = {}
+    for count, name in pairs:
+        group = group_of[name]
+        total_list[group] = total_list.get(count, 0) + count
+    ranked = [(total, group) for group, total in total_list.items()]
+    ranked.sort(key=by_count_then_name)
+    return ranked
 
 def by_count_then_name(pair):
     count, name = pair
@@ -27,6 +47,9 @@ def count_and_rank(log_lines, get_key):
     return pair_list
 
 def main():
+    with open("users.csv") as usercsv:
+        dept_of = {row["username"]: row["department"] for row in csv.DictReader(usercsv)}
+
     with open("cloudbyte_access.log", "r") as log_file:
         log_lines = [line for line in log_file ]
 
@@ -88,6 +111,13 @@ def main():
     for rank, (count, action) in enumerate(persons_login_pairs, start=1):
         print(f"{rank}. {action}: {count} events")
 
+    print()
+
+    #Activity per department
+    dept_pairs = total_and_rank(user_pairs, dept_of)
+    print("Activity per department:")
+    for rank, (count, department) in enumerate(dept_pairs, start=1):
+        print(f"{rank}. {department}: {count} events")
 
 if __name__ == "__main__":
     main()
